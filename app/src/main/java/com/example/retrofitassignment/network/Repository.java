@@ -17,7 +17,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class Repository {
     private final String TAG = this.getClass().getSimpleName();
     private static Repository INSTANCE;
-    private Retrofit retrofit;
     private RetrofitAPIService retrofitAPIService;
     private Call<List<MarsProperty>> marsRequest = retrofitAPIService.getProperties();
     private Call<List<MarsProperty>> boughtMarsRequest = retrofitAPIService.getProperties();
@@ -25,22 +24,14 @@ public class Repository {
 
 
 
-    private Repository (){
-        init();
-    }
-
-    private void init() {
-        retrofit = new Retrofit.Builder()
-                .baseUrl("https://mars.udacity.com/")
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-        retrofitAPIService = retrofit.create(RetrofitAPIService.class);
+    private Repository (RetrofitAPIService retrofitAPIService){
+        this.retrofitAPIService = retrofitAPIService;
     }
 
 
-    public static void initialize(){
+    public static void initialize(RetrofitAPIService retrofitAPIService){
         if(INSTANCE == null){
-            INSTANCE = new Repository();
+            INSTANCE = new Repository(retrofitAPIService);
         }
     }
     public static Repository get(){
