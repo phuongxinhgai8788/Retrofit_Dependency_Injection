@@ -13,4 +13,9 @@ private Repository repository = Repository.get();
 public LiveData<List<MarsProperty>> boughtMarsList = repository.fetchBoughtMars();
 public LiveData<List<MarsProperty>> rentMarsList = repository.fetchRentMars();
 
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        repository.cancelRequestInFlight();
+    }
 }

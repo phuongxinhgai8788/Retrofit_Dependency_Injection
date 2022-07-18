@@ -19,6 +19,11 @@ public class Repository {
     private static Repository INSTANCE;
     private Retrofit retrofit;
     private RetrofitAPIService retrofitAPIService;
+    private Call<List<MarsProperty>> marsRequest = retrofitAPIService.getProperties();
+    private Call<List<MarsProperty>> boughtMarsRequest = retrofitAPIService.getProperties();
+    private Call<List<MarsProperty>> rentMarsRequest = retrofitAPIService.getProperties();
+
+
 
     private Repository (){
         init();
@@ -46,7 +51,6 @@ public class Repository {
     }
     public LiveData<List<MarsProperty>> fetchMars(){
         MutableLiveData<List<MarsProperty>> responseLiveData = new MutableLiveData<>();
-        Call<List<MarsProperty>> marsRequest = retrofitAPIService.getProperties();
         marsRequest.enqueue(new Callback<List<MarsProperty>>(){
 
             @Override
@@ -70,9 +74,8 @@ public class Repository {
 
     public LiveData<List<MarsProperty>> fetchBoughtMars(){
         MutableLiveData<List<MarsProperty>> responseLiveData = new MutableLiveData<>();
-        Call<List<MarsProperty>> marsRequest = retrofitAPIService.getProperties();
         List<MarsProperty> boughtMarsList = new ArrayList<>();
-        marsRequest.enqueue(new Callback<List<MarsProperty>>(){
+        boughtMarsRequest.enqueue(new Callback<List<MarsProperty>>(){
 
             @Override
             public void onResponse(Call<List<MarsProperty>> call, Response<List<MarsProperty>> response) {
@@ -100,9 +103,9 @@ public class Repository {
 
     public LiveData<List<MarsProperty>> fetchRentMars(){
         MutableLiveData<List<MarsProperty>> responseLiveData = new MutableLiveData<>();
-        Call<List<MarsProperty>> marsRequest = retrofitAPIService.getProperties();
+        Call<List<MarsProperty>> rentMarsRequest = retrofitAPIService.getProperties();
         List<MarsProperty> rentMarsList = new ArrayList<>();
-        marsRequest.enqueue(new Callback<List<MarsProperty>>(){
+        rentMarsRequest.enqueue(new Callback<List<MarsProperty>>(){
 
             @Override
             public void onResponse(Call<List<MarsProperty>> call, Response<List<MarsProperty>> response) {
@@ -126,4 +129,17 @@ public class Repository {
             }
         });
         return responseLiveData;
-    }}
+    }
+
+    public void cancelRequestInFlight() {
+        if(marsRequest.isExecuted()){
+            marsRequest.cancel();
+        }
+        if(boughtMarsRequest.isExecuted()){
+            boughtMarsRequest.cancel();
+        }
+        if(rentMarsRequest.isExecuted()){
+            rentMarsRequest.cancel();
+        }
+    }
+}
