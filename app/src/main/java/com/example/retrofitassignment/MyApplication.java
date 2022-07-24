@@ -17,7 +17,7 @@ public class MyApplication extends Application {
 
     private void initRepository() {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://mars.udacity.com/")
+                .baseUrl("https://api.flickr.com/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         RetrofitAPIService retrofitAPIService = retrofit.create(RetrofitAPIService.class);

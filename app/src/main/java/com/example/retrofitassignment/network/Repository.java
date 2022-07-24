@@ -10,7 +10,6 @@ import androidx.lifecycle.MutableLiveData;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 
 import okhttp3.ResponseBody;
@@ -22,10 +21,7 @@ public class Repository {
     private static Repository INSTANCE;
     private final String TAG = "Repository";
     private RetrofitAPIService retrofitAPIService;
-    private Call<List<MarsProperty>> marsRequest;
-    private Call<List<MarsProperty>> boughtMarsRequest;
-    private Call<List<MarsProperty>> rentMarsRequest;
-
+    private Call<FlickrResponse> marsRequest;
 
     private Repository(RetrofitAPIService retrofitAPIService) {
         this.retrofitAPIService = retrofitAPIService;
@@ -45,89 +41,91 @@ public class Repository {
         return INSTANCE;
     }
 
-    public LiveData<List<MarsProperty>> fetchMars() {
-        MutableLiveData<List<MarsProperty>> responseLiveData = new MutableLiveData<>();
+    public LiveData<List<GalleryItem>> fetchMars() {
+        MutableLiveData<List<GalleryItem>> responseLiveData = new MutableLiveData<>();
         marsRequest = retrofitAPIService.getProperties();
-        marsRequest.enqueue(new Callback<List<MarsProperty>>() {
+        marsRequest.enqueue(new Callback<FlickrResponse>() {
 
             @Override
-            public void onResponse(Call<List<MarsProperty>> call, Response<List<MarsProperty>> response) {
+            public void onResponse(Call<FlickrResponse> call, Response<FlickrResponse> response) {
                 Log.i(TAG, "Response received");
                 if (response != null) {
-                    List<MarsProperty> marsResponse = response.body();
-                    if (marsResponse != null) {
-                        responseLiveData.postValue(marsResponse);
+                     FlickrResponse flickrResponse = response.body();
+                     PhotoResponse photoResponse = flickrResponse.getPhotos();
+                     List<GalleryItem> galleryItemList = photoResponse.getGalleryItems();
+                    if (photoResponse != null) {
+                        responseLiveData.postValue(galleryItemList);
                     }
                 }
             }
 
             @Override
-            public void onFailure(Call<List<MarsProperty>> call, Throwable t) {
+            public void onFailure(Call<FlickrResponse> call, Throwable t) {
                 Log.e(TAG, "Failed to fetch mars", t);
             }
         });
         return responseLiveData;
     }
 
-    public LiveData<List<MarsProperty>> fetchBoughtMars() {
-        MutableLiveData<List<MarsProperty>> responseLiveData = new MutableLiveData<>();
-        List<MarsProperty> boughtMarsList = new ArrayList<>();
-        boughtMarsRequest = retrofitAPIService.getProperties();
-        boughtMarsRequest.enqueue(new Callback<List<MarsProperty>>() {
-
-            @Override
-            public void onResponse(Call<List<MarsProperty>> call, Response<List<MarsProperty>> response) {
-                Log.i(TAG, "Response received");
-                if (response != null) {
-                    List<MarsProperty> marsResponse = response.body();
-                    if (marsResponse != null) {
-                        for (MarsProperty marsProperty : marsResponse) {
-                            if ("buy".equals(marsProperty.getType())) {
-                                boughtMarsList.add(marsProperty);
-                            }
-                        }
-                        responseLiveData.postValue(boughtMarsList);
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<MarsProperty>> call, Throwable t) {
-                Log.e(TAG, "Failed to fetch mars", t);
-            }
-        });
-        return responseLiveData;
-    }
-
-    public LiveData<List<MarsProperty>> fetchRentMars() {
-        MutableLiveData<List<MarsProperty>> responseLiveData = new MutableLiveData<>();
-        rentMarsRequest = retrofitAPIService.getProperties();
-        List<MarsProperty> rentMarsList = new ArrayList<>();
-        rentMarsRequest.enqueue(new Callback<List<MarsProperty>>() {
-
-            @Override
-            public void onResponse(Call<List<MarsProperty>> call, Response<List<MarsProperty>> response) {
-                Log.i(TAG, "Response received");
-                if (response != null) {
-                    List<MarsProperty> marsResponse = response.body();
-                    if (marsResponse != null) {
-                        for (MarsProperty marsProperty : marsResponse) {
-                            if ("rent".equals(marsProperty.getType())) {
-                                rentMarsList.add(marsProperty);
-                            }
-                        }
-                        responseLiveData.postValue(rentMarsList);
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<MarsProperty>> call, Throwable t) {
-                Log.e(TAG, "Failed to fetch mars", t);
-            }
-        });
-        return responseLiveData;
-    }
+//    public LiveData<List<GalleryItem>> fetchBoughtMars() {
+//        MutableLiveData<List<MarsProperty>> responseLiveData = new MutableLiveData<>();
+//        List<GalleryItem> boughtMarsList = new ArrayList<>();
+//        boughtMarsRequest = retrofitAPIService.getProperties();
+//        boughtMarsRequest.enqueue(new Callback<List<GalleryItem>>() {
+//
+//            @Override
+//            public void onResponse(Call<List<GalleryItem>> call, Response<List<GalleryItem>> response) {
+//                Log.i(TAG, "Response received");
+//                if (response != null) {
+//                    List<GalleryItem> marsResponse = response.body();
+//                    if (marsResponse != null) {
+//                        for (GalleryItem marsProperty : marsResponse) {
+//                            if ("buy".equals(marsProperty.getType())) {
+//                                boughtMarsList.add(marsProperty);
+//                            }
+//                        }
+//                        responseLiveData.postValue(boughtMarsList);
+//                    }
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(Call<List<MarsProperty>> call, Throwable t) {
+//                Log.e(TAG, "Failed to fetch mars", t);
+//            }
+//        });
+//        return responseLiveData;
+//    }
+//
+//    public LiveData<List<MarsProperty>> fetchRentMars() {
+//        MutableLiveData<List<MarsProperty>> responseLiveData = new MutableLiveData<>();
+//        rentMarsRequest = retrofitAPIService.getProperties();
+//        List<MarsProperty> rentMarsList = new ArrayList<>();
+//        rentMarsRequest.enqueue(new Callback<List<MarsProperty>>() {
+//
+//            @Override
+//            public void onResponse(Call<List<MarsProperty>> call, Response<List<MarsProperty>> response) {
+//                Log.i(TAG, "Response received");
+//                if (response != null) {
+//                    List<MarsProperty> marsResponse = response.body();
+//                    if (marsResponse != null) {
+//                        for (MarsProperty marsProperty : marsResponse) {
+//                            if ("rent".equals(marsProperty.getType())) {
+//                                rentMarsList.add(marsProperty);
+//                            }
+//                        }
+//                        responseLiveData.postValue(rentMarsList);
+//                    }
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(Call<List<MarsProperty>> call, Throwable t) {
+//                Log.e(TAG, "Failed to fetch mars", t);
+//            }
+//        });
+//        return responseLiveData;
+//    }
 
     @WorkerThread
     public Bitmap fetchPhoto(String url) throws IOException {
@@ -142,18 +140,18 @@ public class Repository {
         return bitmap;
     }
 
-    public void cancelRequestInFlight() {
-        if (marsRequest != null) {
-            if (marsRequest.isExecuted())
-                marsRequest.cancel();
-        }
-        if (boughtMarsRequest != null)
-            if (boughtMarsRequest.isExecuted()) {
-                boughtMarsRequest.cancel();
-            }
-        if (rentMarsRequest != null)
-            if (rentMarsRequest.isExecuted()) {
-                rentMarsRequest.cancel();
-            }
-    }
+//    public void cancelRequestInFlight() {
+//        if (marsRequest != null) {
+//            if (marsRequest.isExecuted())
+//                marsRequest.cancel();
+//        }
+//        if (boughtMarsRequest != null)
+//            if (boughtMarsRequest.isExecuted()) {
+//                boughtMarsRequest.cancel();
+//            }
+//        if (rentMarsRequest != null)
+//            if (rentMarsRequest.isExecuted()) {
+//                rentMarsRequest.cancel();
+//            }
+//    }
 }
