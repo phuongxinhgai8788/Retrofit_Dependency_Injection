@@ -8,6 +8,8 @@ import androidx.annotation.WorkerThread;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.example.retrofitassignment.Constant;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -20,17 +22,19 @@ import retrofit2.Response;
 public class Repository {
     private static Repository INSTANCE;
     private final String TAG = "Repository";
-    private RetrofitAPIService retrofitAPIService;
-    private Call<FlickrResponse> marsRequest;
+    private MarsAPIService marsAPIService;
+    private FlickersAPIService flickersAPIService;
+    private Call<FlickrResponse> flickerRequest;
+    private Call<List<MarsProperty>> marsRequest;
 
-    private Repository(RetrofitAPIService retrofitAPIService) {
-        this.retrofitAPIService = retrofitAPIService;
+    private Repository() {
+
     }
 
 
-    public static void initialize(RetrofitAPIService retrofitAPIService) {
+    public static void initialize( ) {
         if (INSTANCE == null) {
-            INSTANCE = new Repository(retrofitAPIService);
+            INSTANCE = new Repository();
         }
     }
 
@@ -41,10 +45,17 @@ public class Repository {
         return INSTANCE;
     }
 
-    public LiveData<List<GalleryItem>> fetchMars() {
+    public void setMarsAPIService(MarsAPIService baseAPIService){
+       this.marsAPIService = baseAPIService;
+    }
+
+    public void setFlickersAPIService(FlickersAPIService flickersAPIService){
+        this.flickersAPIService = flickersAPIService;
+    }
+    public LiveData<List<GalleryItem>> fetchFlickers() {
         MutableLiveData<List<GalleryItem>> responseLiveData = new MutableLiveData<>();
-        marsRequest = retrofitAPIService.getProperties();
-        marsRequest.enqueue(new Callback<FlickrResponse>() {
+        flickerRequest = flickersAPIService.getFlickers();
+        flickerRequest.enqueue(new Callback<FlickrResponse>() {
 
             @Override
             public void onResponse(Call<FlickrResponse> call, Response<FlickrResponse> response) {
@@ -67,70 +78,33 @@ public class Repository {
         return responseLiveData;
     }
 
-//    public LiveData<List<GalleryItem>> fetchBoughtMars() {
-//        MutableLiveData<List<MarsProperty>> responseLiveData = new MutableLiveData<>();
-//        List<GalleryItem> boughtMarsList = new ArrayList<>();
-//        boughtMarsRequest = retrofitAPIService.getProperties();
-//        boughtMarsRequest.enqueue(new Callback<List<GalleryItem>>() {
-//
-//            @Override
-//            public void onResponse(Call<List<GalleryItem>> call, Response<List<GalleryItem>> response) {
-//                Log.i(TAG, "Response received");
-//                if (response != null) {
-//                    List<GalleryItem> marsResponse = response.body();
-//                    if (marsResponse != null) {
-//                        for (GalleryItem marsProperty : marsResponse) {
-//                            if ("buy".equals(marsProperty.getType())) {
-//                                boughtMarsList.add(marsProperty);
-//                            }
-//                        }
-//                        responseLiveData.postValue(boughtMarsList);
-//                    }
-//                }
-//            }
-//
-//            @Override
-//            public void onFailure(Call<List<MarsProperty>> call, Throwable t) {
-//                Log.e(TAG, "Failed to fetch mars", t);
-//            }
-//        });
-//        return responseLiveData;
-//    }
-//
-//    public LiveData<List<MarsProperty>> fetchRentMars() {
-//        MutableLiveData<List<MarsProperty>> responseLiveData = new MutableLiveData<>();
-//        rentMarsRequest = retrofitAPIService.getProperties();
-//        List<MarsProperty> rentMarsList = new ArrayList<>();
-//        rentMarsRequest.enqueue(new Callback<List<MarsProperty>>() {
-//
-//            @Override
-//            public void onResponse(Call<List<MarsProperty>> call, Response<List<MarsProperty>> response) {
-//                Log.i(TAG, "Response received");
-//                if (response != null) {
-//                    List<MarsProperty> marsResponse = response.body();
-//                    if (marsResponse != null) {
-//                        for (MarsProperty marsProperty : marsResponse) {
-//                            if ("rent".equals(marsProperty.getType())) {
-//                                rentMarsList.add(marsProperty);
-//                            }
-//                        }
-//                        responseLiveData.postValue(rentMarsList);
-//                    }
-//                }
-//            }
-//
-//            @Override
-//            public void onFailure(Call<List<MarsProperty>> call, Throwable t) {
-//                Log.e(TAG, "Failed to fetch mars", t);
-//            }
-//        });
-//        return responseLiveData;
-//    }
+    public LiveData<List<MarsProperty>> fetchMars() {
+        MutableLiveData<List<MarsProperty>> responseLiveData = new MutableLiveData<>();
+        marsRequest = marsAPIService.getMars();
+        marsRequest.enqueue(new Callback<List<MarsProperty>>() {
 
+            @Override
+            public void onResponse(Call<List<MarsProperty>> call, Response<List<MarsProperty>> response) {
+                Log.i(TAG, "Response received");
+                if (response != null) {
+                    List<MarsProperty> marsResponse = response.body();
+                    if (marsResponse != null) {
+                        responseLiveData.postValue(marsResponse);
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<MarsProperty>> call, Throwable t) {
+                Log.e(TAG, "Failed to fetch mars", t);
+            }
+        });
+        return responseLiveData;
+    }
     @WorkerThread
-    public Bitmap fetchPhoto(String url) throws IOException {
+    public Bitmap fetchMarsPhoto(String url) throws IOException {
         Bitmap bitmap = null;
-        Response<ResponseBody> response = retrofitAPIService.fetchUrlBytes(url).execute();
+        Response<ResponseBody> response = marsAPIService.fetchUrlBytes(url).execute();
         InputStream inputStream = response.body().byteStream();
         if (inputStream != null) {
             bitmap = BitmapFactory.decodeStream(inputStream);
@@ -140,18 +114,27 @@ public class Repository {
         return bitmap;
     }
 
-//    public void cancelRequestInFlight() {
-//        if (marsRequest != null) {
-//            if (marsRequest.isExecuted())
-//                marsRequest.cancel();
-//        }
-//        if (boughtMarsRequest != null)
-//            if (boughtMarsRequest.isExecuted()) {
-//                boughtMarsRequest.cancel();
-//            }
-//        if (rentMarsRequest != null)
-//            if (rentMarsRequest.isExecuted()) {
-//                rentMarsRequest.cancel();
-//            }
-//    }
+    @WorkerThread
+    public Bitmap fetchFlickersPhoto(String url) throws IOException {
+        Bitmap bitmap = null;
+        Response<ResponseBody> response = marsAPIService.fetchUrlBytes(url).execute();
+        InputStream inputStream = response.body().byteStream();
+        if (inputStream != null) {
+            bitmap = BitmapFactory.decodeStream(inputStream);
+            Log.i(TAG, "Decoded bitmap = " + bitmap + " from Response = " + response);
+        }
+        inputStream.close();
+        return bitmap;
+    }
+    public void cancelRequestInFlight() {
+        if (marsRequest != null) {
+            if (marsRequest.isExecuted())
+                marsRequest.cancel();
+        }
+        if (flickerRequest != null)
+            if (flickerRequest.isExecuted()) {
+                flickerRequest.cancel();
+            }
+
+    }
 }

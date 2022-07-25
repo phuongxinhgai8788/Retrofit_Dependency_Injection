@@ -20,6 +20,7 @@ import kotlin.Suppress;
 public abstract class ThumbnailDownloader<T> extends HandlerThread implements LifecycleEventObserver {
 
     private final String TAG = "ThumbnailDownloader";
+    private boolean isMars;
     private final int MESSAGE_DOWNLOAD = 0;
     private boolean hasQuit = false;
     private Handler requestHandler = new Handler();
@@ -38,8 +39,9 @@ public abstract class ThumbnailDownloader<T> extends HandlerThread implements Li
         return super.quit();
     }
 
-    public void queueThumbnail(T target, String url) {
+    public void queueThumbnail(T target, String url, boolean isMars) {
         Log.i(TAG, "Got a URL: " + url);
+        this.isMars = isMars;
         requestMap.put(target, url);
         requestHandler.obtainMessage(MESSAGE_DOWNLOAD, target).sendToTarget();
     }
@@ -93,14 +95,25 @@ public abstract class ThumbnailDownloader<T> extends HandlerThread implements Li
     private void handleRequest(T target) throws IOException {
         Log.i(TAG, "Request is being handled");
         String url = requestMap.get(target);
-        Bitmap bitmap = repository.fetchPhoto(url);
-        responseHandler.post(() -> {
+        if(isMars){
+            Bitmap bitmap = repository.fetchMarsPhoto(url);
+            responseHandler.post(() -> {
 //            if(!requestMap.get(target).equals(url) || hasQuit){
 //                return;
 //            }
 //            requestMap.remove(target);
-            onThumbnailDownloaded(target, bitmap);
-        });
+                onThumbnailDownloaded(target, bitmap);
+            });
+        }else {
+            Bitmap bitmap = repository.fetchFlickersPhoto(url);
+            responseHandler.post(() -> {
+//            if(!requestMap.get(target).equals(url) || hasQuit){
+//                return;
+//            }
+//            requestMap.remove(target);
+                onThumbnailDownloaded(target, bitmap);
+            });
+        }
     }
 
     public abstract void onThumbnailDownloaded(T target, Bitmap bitmapImg);

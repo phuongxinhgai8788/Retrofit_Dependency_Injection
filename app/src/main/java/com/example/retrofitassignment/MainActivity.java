@@ -11,8 +11,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
-//    boolean isBought;
-    ListMarsFragment listMarsFragment = ListMarsFragment.newInstance();
+    boolean isMars;
+    ListItemFragment listMarsFragment = ListItemFragment.newInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,20 +31,20 @@ public class MainActivity extends AppCompatActivity {
         return super.onCreateOptionsMenu(menu);
     }
 
-//    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-//        switch (item.getItemId()) {
-//            case R.id.rent_mar:
-//                isBought = false;
-//                listMarsFragment.changeMarsList(isBought);
-//                return true;
-//            case R.id.buy_mar:
-//                isBought = true;
-//                listMarsFragment.changeMarsList(isBought);
-//                return true;
-//            default:
-//                return super.onOptionsItemSelected(item);
-//        }
-//    }
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.open_mars:
+                isMars = true;
+                listMarsFragment.changeList(isMars);
+                return true;
+            case R.id.open_flickers:
+                isMars = false;
+                listMarsFragment.changeList(isMars);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
 
 //    private void displayListFragment() {
 //        Fragment currentFragment = getSupportFragmentManager()

@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">RetrofitAssignment</string>
-    <string name="rent_mar">Rent Mar</string>
-    <string name="buy_mar">Buy Mar</string>
+    <string name="mars">Mars</string>
+    <string name="flickers">Flickers</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

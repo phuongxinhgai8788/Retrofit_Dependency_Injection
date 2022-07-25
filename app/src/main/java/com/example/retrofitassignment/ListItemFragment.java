@@ -19,34 +19,39 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.retrofitassignment.network.FlickersAPIService;
+import com.example.retrofitassignment.network.FlickrResponse;
 import com.example.retrofitassignment.network.GalleryItem;
+import com.example.retrofitassignment.network.MarsAPIService;
 import com.example.retrofitassignment.network.MarsProperty;
 import com.example.retrofitassignment.network.ThumbnailDownloader;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ListMarsFragment extends Fragment {
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
-//    private static final String ARG_PARAM1 = "isBought";
+public class ListItemFragment extends Fragment {
+
     private final String TAG = "ListMarsFragment";
 
-//    private boolean isBought;
+    private boolean isMars;
     private RecyclerView recyclerView;
-    private List<GalleryItem> marsPropertyList = new ArrayList<>();
+    private List<MarsProperty> marsList = new ArrayList<>();
+    private List<GalleryItem> galleryList = new ArrayList<>();
     private Context context;
-    private ListMarsViewModel listMarsViewModel;
-    private ThumbnailDownloader<MarsHolder> thumbnailDownloader;
-    private MarsAdapter marsAdapter = new MarsAdapter();
+    private ListItemViewModel listMarsViewModel;
+    private ThumbnailDownloader<ItemHolder> thumbnailDownloader;
+    private ItemsAdapter marsAdapter = new ItemsAdapter();
 
-    public ListMarsFragment() {
+    public ListItemFragment() {
         // Required empty public constructor
     }
 
-    public static ListMarsFragment newInstance(/*boolean param1*/) {
-        ListMarsFragment fragment = new ListMarsFragment();
+    public static ListItemFragment newInstance() {
+        ListItemFragment fragment = new ListItemFragment();
         Bundle args = new Bundle();
-//        args.putBoolean(ARG_PARAM1, param1);
         fragment.setArguments(args);
         return fragment;
     }
@@ -61,12 +66,11 @@ public class ListMarsFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-//            isBought = getArguments().getBoolean(ARG_PARAM1);
         }
         Handler responseHandler = new Handler();
-        thumbnailDownloader = new ThumbnailDownloader<MarsHolder>() {
+        thumbnailDownloader = new ThumbnailDownloader<ItemHolder>() {
             @Override
-            public void onThumbnailDownloaded(MarsHolder marsHolder, Bitmap bitmapImg) {
+            public void onThumbnailDownloaded(ItemHolder marsHolder, Bitmap bitmapImg) {
                 Drawable drawable = new BitmapDrawable(getResources(), bitmapImg);
                 marsHolder.bindDrawable(drawable);
             }
@@ -84,14 +88,13 @@ public class ListMarsFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(new GridLayoutManager(context, 3));
         recyclerView.setAdapter(marsAdapter);
-        listMarsViewModel = new ViewModelProvider(this).get(ListMarsViewModel.class);
+        listMarsViewModel = new ViewModelProvider(this).get(ListItemViewModel.class);
         return view;
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        loadData();
     }
 
     @Override
@@ -100,34 +103,35 @@ public class ListMarsFragment extends Fragment {
         getLifecycle().removeObserver(thumbnailDownloader);
     }
 
-//    public void changeMarsList(boolean isBought) {
-//        this.isBought = isBought;
-//        loadData();
-//    }
+    public void changeList(boolean isMars) {
+        this.isMars = isMars;
+        loadData();
+    }
 
     private void loadData() {
-//        if (isBought) {
-            listMarsViewModel.galleryList.observe(getViewLifecycleOwner(), mars -> {
+        if (isMars) {
+            listMarsViewModel.marsList.observe(getViewLifecycleOwner(), mars -> {
                 if (mars != null) {
-                    Log.i(TAG, "List is fetched!");
-                    marsPropertyList = mars;
+                    marsList = mars;
                     marsAdapter.notifyDataSetChanged();
                 }
             });
-//        } else {
-//            listMarsViewModel.rentMarsList.observe(getViewLifecycleOwner(), mars -> {
-//                if (mars != null) {
-//                    marsPropertyList = mars;
-//                    marsAdapter.notifyDataSetChanged();
-//                }
-//            });
-//        }
+        } else {
+            listMarsViewModel.flickersList.observe(getViewLifecycleOwner(), flickers -> {
+                if (flickers != null) {
+                    galleryList = flickers;
+                    Log.i(TAG, "Flickers is loaded!");
+                    marsAdapter.notifyDataSetChanged();
+                }
+            });
+        }
     }
 
-    private class MarsHolder extends RecyclerView.ViewHolder {
+
+    private class ItemHolder extends RecyclerView.ViewHolder {
         private ImageView imageView;
 
-        public MarsHolder(@NonNull View itemView) {
+        public ItemHolder(@NonNull View itemView) {
             super(itemView);
             imageView = itemView.findViewById(R.id.image);
         }
@@ -138,29 +142,42 @@ public class ListMarsFragment extends Fragment {
 
     }
 
-    private class MarsAdapter extends RecyclerView.Adapter<MarsHolder> {
+    private class ItemsAdapter extends RecyclerView.Adapter<ItemHolder> {
 
         @NonNull
         @Override
-        public MarsHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
+        public ItemHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
             LayoutInflater layoutInflater = LayoutInflater.from(context);
             View view = layoutInflater.inflate(R.layout.mar_item_holder, viewGroup, false);
-            return new MarsHolder(view);
+            return new ItemHolder(view);
         }
 
         @Override
-        public void onBindViewHolder(@NonNull MarsHolder marsHolder, int i) {
-            GalleryItem marsProperty = marsPropertyList.get(i);
-            Drawable placeHolder = ContextCompat.getDrawable(
-                    context,
-                    R.mipmap.ic_buy_foreground);
-            marsHolder.bindDrawable(placeHolder);
-            thumbnailDownloader.queueThumbnail(marsHolder, marsProperty.getUrl());
+        public void onBindViewHolder(@NonNull ItemHolder marsHolder, int i) {
+            if(isMars){
+                MarsProperty marsProperty = marsList.get(i);
+                Drawable placeHolder = ContextCompat.getDrawable(
+                        context,
+                        R.mipmap.ic_buy_foreground);
+                marsHolder.bindDrawable(placeHolder);
+                thumbnailDownloader.queueThumbnail(marsHolder, marsProperty.getImgSrcUrl(), isMars);
+            }else {
+                GalleryItem galleryItem = galleryList.get(i);
+                Drawable placeHolder = ContextCompat.getDrawable(
+                        context,
+                        R.mipmap.ic_rent_foreground);
+                marsHolder.bindDrawable(placeHolder);
+                thumbnailDownloader.queueThumbnail(marsHolder, galleryItem.getUrl(), isMars);
+            }
         }
 
         @Override
         public int getItemCount() {
-            return marsPropertyList.size();
+            if(isMars){
+                return marsList.size();
+            }else{
+                return galleryList.size();
+            }
         }
     }
 }

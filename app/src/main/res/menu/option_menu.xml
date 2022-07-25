@@ -2,13 +2,13 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/rent_mar"
+        android:id="@+id/open_mars"
         android:icon="@mipmap/ic_rent"
-        android:title="@string/rent_mar"
+        android:title="@string/mars"
         app:showAsAction="ifRoom|withText"/>
     <item
-        android:id="@+id/buy_mar"
+        android:id="@+id/open_flickers"
         android:icon="@mipmap/ic_buy"
-        android:title="@string/buy_mar"
+        android:title="@string/flickers"
         app:showAsAction="ifRoom|withText"/>
 </menu>

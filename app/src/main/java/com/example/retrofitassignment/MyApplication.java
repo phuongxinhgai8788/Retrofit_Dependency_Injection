@@ -2,8 +2,9 @@ package com.example.retrofitassignment;
 
 import android.app.Application;
 
+import com.example.retrofitassignment.network.FlickersAPIService;
+import com.example.retrofitassignment.network.MarsAPIService;
 import com.example.retrofitassignment.network.Repository;
-import com.example.retrofitassignment.network.RetrofitAPIService;
 
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -16,11 +17,25 @@ public class MyApplication extends Application {
     }
 
     private void initRepository() {
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://api.flickr.com/")
+        Repository.initialize();
+        Repository repository = Repository.get();
+
+        Retrofit retrofit01 = new Retrofit.Builder()
+                .baseUrl(Constant.MARS_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
-        RetrofitAPIService retrofitAPIService = retrofit.create(RetrofitAPIService.class);
-        Repository.initialize(retrofitAPIService);
+        MarsAPIService marsAPIService = retrofit01.create(MarsAPIService.class);
+
+        Retrofit retrofit02 = new Retrofit.Builder()
+                .baseUrl(Constant.FLICKER_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        FlickersAPIService flickersAPIService = retrofit02.create(FlickersAPIService.class);
+
+            repository.setMarsAPIService(marsAPIService);
+            repository.setFlickersAPIService(flickersAPIService);
+
     }
+
+
 }
