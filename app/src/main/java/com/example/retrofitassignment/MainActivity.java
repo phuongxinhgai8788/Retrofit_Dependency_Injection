@@ -46,20 +46,5 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-//    private void displayListFragment() {
-//        Fragment currentFragment = getSupportFragmentManager()
-//                .findFragmentById(R.id.fragmentContainer);
-//        if(currentFragment==null) {
-//            getSupportFragmentManager()
-//                    .beginTransaction()
-//                    .add(R.id.fragmentContainer, listMarsFragment)
-//                    .commit();
-//        } else{
-//            getSupportFragmentManager()
-//                    .beginTransaction()
-//                    .replace(R.id.fragmentContainer, ListMarsFragment.newInstance(isBought))
-//                    .commit();
-//        }
-
 }
 

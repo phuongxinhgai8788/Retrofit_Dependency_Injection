@@ -25,6 +25,7 @@ import com.example.retrofitassignment.network.GalleryItem;
 import com.example.retrofitassignment.network.MarsAPIService;
 import com.example.retrofitassignment.network.MarsProperty;
 import com.example.retrofitassignment.network.ThumbnailDownloader;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +43,7 @@ public class ListItemFragment extends Fragment {
     private List<GalleryItem> galleryList = new ArrayList<>();
     private Context context;
     private ListItemViewModel listMarsViewModel;
-    private ThumbnailDownloader<ItemHolder> thumbnailDownloader;
+//    private ThumbnailDownloader<ItemHolder> thumbnailDownloader;
     private ItemsAdapter marsAdapter = new ItemsAdapter();
 
     public ListItemFragment() {
@@ -67,16 +68,16 @@ public class ListItemFragment extends Fragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
         }
-        Handler responseHandler = new Handler();
-        thumbnailDownloader = new ThumbnailDownloader<ItemHolder>() {
-            @Override
-            public void onThumbnailDownloaded(ItemHolder marsHolder, Bitmap bitmapImg) {
-                Drawable drawable = new BitmapDrawable(getResources(), bitmapImg);
-                marsHolder.bindDrawable(drawable);
-            }
-        };
-        thumbnailDownloader.setResponseHandler(responseHandler);
-        getLifecycle().addObserver(thumbnailDownloader);
+//        Handler responseHandler = new Handler();
+//        thumbnailDownloader = new ThumbnailDownloader<ItemHolder>() {
+//            @Override
+//            public void onThumbnailDownloaded(ItemHolder marsHolder, Bitmap bitmapImg) {
+//                Drawable drawable = new BitmapDrawable(getResources(), bitmapImg);
+//                marsHolder.bindDrawable(drawable);
+//            }
+//        };
+//        thumbnailDownloader.setResponseHandler(responseHandler);
+//        getLifecycle().addObserver(thumbnailDownloader);
 
     }
 
@@ -100,7 +101,7 @@ public class ListItemFragment extends Fragment {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        getLifecycle().removeObserver(thumbnailDownloader);
+//        getLifecycle().removeObserver(thumbnailDownloader);
     }
 
     public void changeList(boolean isMars) {
@@ -140,6 +141,24 @@ public class ListItemFragment extends Fragment {
             imageView.setImageDrawable(drawable);
         }
 
+        public void bindMars(MarsProperty mars){
+            String photoURL = mars.getImgSrcUrl();
+            Picasso.get()
+                    .load(photoURL)
+                    .placeholder(R.drawable.loading_animation)
+                    .error(R.drawable.ic_broken_image)
+                    .into(imageView);
+
+        }
+
+        public void bindFlickers(GalleryItem galleryItem){
+            String photoURL = galleryItem.getUrl();
+            Picasso.get()
+                    .load(photoURL)
+                    .placeholder(R.drawable.loading_animation)
+                    .error(R.drawable.ic_broken_image)
+                    .into(imageView);
+        }
     }
 
     private class ItemsAdapter extends RecyclerView.Adapter<ItemHolder> {
@@ -156,18 +175,20 @@ public class ListItemFragment extends Fragment {
         public void onBindViewHolder(@NonNull ItemHolder marsHolder, int i) {
             if(isMars){
                 MarsProperty marsProperty = marsList.get(i);
-                Drawable placeHolder = ContextCompat.getDrawable(
-                        context,
-                        R.mipmap.ic_buy_foreground);
-                marsHolder.bindDrawable(placeHolder);
-                thumbnailDownloader.queueThumbnail(marsHolder, marsProperty.getImgSrcUrl(), isMars);
+                marsHolder.bindMars(marsProperty);
+//                Drawable placeHolder = ContextCompat.getDrawable(
+//                        context,
+//                        R.mipmap.ic_buy_foreground);
+//                marsHolder.bindDrawable(placeHolder);
+//                thumbnailDownloader.queueThumbnail(marsHolder, marsProperty.getImgSrcUrl(), isMars);
             }else {
                 GalleryItem galleryItem = galleryList.get(i);
-                Drawable placeHolder = ContextCompat.getDrawable(
-                        context,
-                        R.mipmap.ic_rent_foreground);
-                marsHolder.bindDrawable(placeHolder);
-                thumbnailDownloader.queueThumbnail(marsHolder, galleryItem.getUrl(), isMars);
+                marsHolder.bindFlickers(galleryItem);
+//                Drawable placeHolder = ContextCompat.getDrawable(
+//                        context,
+//                        R.mipmap.ic_rent_foreground);
+//                marsHolder.bindDrawable(placeHolder);
+//                thumbnailDownloader.queueThumbnail(marsHolder, galleryItem.getUrl(), isMars);
             }
         }
 
